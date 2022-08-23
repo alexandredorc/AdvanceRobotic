@@ -18,7 +18,7 @@ find_package(catkin REQUIRED COMPONENTS
 catkin_package()
 
 add_executable(particle_filter_localisation
-        src/particle_filter_localisation.py
+        src/particle_filter_localisation.cpp
         )
 
 target_include_directories(particle_filter_localisation SYSTEM PRIVATE ${OpenCV_INCLUDE_DIRS} ${catkin_INCLUDE_DIRS})

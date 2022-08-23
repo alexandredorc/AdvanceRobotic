@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 from re import X
-from tkinter import Y
+from Tkinter import Y
 import rospy
 import math
 from nav_msgs.msg import OccupancyGrid
@@ -154,8 +154,8 @@ class ParticleFilter:
         # You probably need to use a "." in your numbers (e.g. "1.0") when calculating the weights
         weight=1.0/self.num_particles_
         for i in range(self.num_particles_):
-            X=random_uniform(self.map_x_min_,self.map_x_max)
-            Y=random_uniform(self.map_y_min_,self.map_y_max)
+            X=random_uniform(self.map_x_min_,self.map_x_max_)
+            Y=random_uniform(self.map_y_min_,self.map_y_max_)
             theta=random_uniform(0,2*math.pi)
             self.particles_.append(Particle(X,Y,theta,weight))
 
@@ -177,14 +177,10 @@ class ParticleFilter:
         # Normalise the weights of the particles in "particles_"
 
         total=0
-        for i in range(self.num_particles_):
-            total+=self.particles_[i].weight
-
-        for i in range(self.num_particles_):
-            self.particles_[i]/=total
-
-
-
+        for p in self.particles_:
+            total+=p.weight
+        for i in range(len(self.particles_)):
+            self.particles_[i].weight/=total
 
 
 
@@ -227,14 +223,18 @@ class ParticleFilter:
         estimated_pose_x = 0.0
         estimated_pose_y = 0.0
         estimated_pose_theta = 0.0
-
+        sum_sin=0
+        sum_cos=0
+        n=len(self.particles_)
         # Choose a method to estimate the pose from the particles in the "particles_" vector
         # Put the values into "estimated_pose_x", "estimated_pose_y", and "estimated_pose_theta"
         # If you just use the pose of the particle with the highest weight the maximum mark you can get for this part is 0.5
-        for i in range(self.num_particles_):
+        for i in range(n):
             estimated_pose_x += self.particles_[i].weight * self.particles_[i].x
             estimated_pose_y += self.particles_[i].weight * self.particles_[i].y
-            estimated_pose_theta += self.particles_[i].weight * self.particles_[i].theta
+            sum_sin+=math.sin(self.particles_[i].theta)*self.particles_[i].weight
+            sum_cos+=math.cos(self.particles_[i].theta)*self.particles_[i].weight
+        estimated_pose_theta=math.atan2(sum_sin,sum_cos)
 
 
         # Set the estimated pose message
@@ -402,10 +402,10 @@ class ParticleFilter:
         # You will probably need "math.cos()" and "math.sin()", and you should wrap theta with "wrap_angle()" too
 
 
-        for i in range(self.num_particles_):
-            self.particles_[i].x+= distance*math.cos(self.particles_[i].theta) + random_normal(-self.motion_distance_noise_stddev_,self.motion_distance_noise_stddev_)
-            self.particles_[i].y+= distance*math.sin(self.particles_[i].theta) + random_normal(-self.motion_distance_noise_stddev_,self.motion_distance_noise_stddev_)
-            self.particles_[i].theta= wrap_angle(self.particles_[i].theta + rotation + random_normal(-self.motion_rotation_noise_stddev_,self.motion_rotation_noise_stddev_))
+        for i in range(len(self.particles_)):
+            self.particles_[i].x+= (distance + random_normal(self.motion_distance_noise_stddev_)) * math.cos(self.particles_[i].theta) 
+            self.particles_[i].y+= (distance + random_normal(self.motion_distance_noise_stddev_)) * math.sin(self.particles_[i].theta)
+            self.particles_[i].theta= wrap_angle(self.particles_[i].theta + rotation + random_normal(self.motion_rotation_noise_stddev_))
 
 
         # Overwrite the previous odometry message
@@ -483,15 +483,9 @@ class ParticleFilter:
                 # Multiply the ray likelihood into the "likelihood" variable
                 # You will probably need "math.pi", math.sqrt()", "math.pow()", and "math.exp()"
 
-
-                ####################
-                ## YOUR CODE HERE ##
-                ####################
-
-
-
-
-
+                sense_calc=2*(self.sensing_noise_stddev_**2)
+                likelihood*=math.exp(-((particle_range-scan_range)**2)/sense_calc)
+                likelihood/=math.sqrt(math.pi*sense_calc)
 
             # Update the particle weight with the likelihood
             p.weight *= likelihood
