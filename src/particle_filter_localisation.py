@@ -55,9 +55,9 @@ class ParticleFilter:
         # Parameters
         # Default values will be used if no ROS parameter exists (see launch file)
         self.num_particles_ = rospy.get_param("~num_particles", 500) # Number of particles
-        self.num_motion_updates_ = rospy.get_param("~num_motion_updates", 5) # Number of motion updates before a sensor update
-        self.num_scan_rays_ = rospy.get_param("~num_scan_rays", 6) # (Approximate) number of scan rays to evaluate
-        self.num_sensing_updates_ = rospy.get_param("~num_sensing_updates", 5) # Number of sensing updates before resampling
+        self.num_motion_updates_ = rospy.get_param("~num_motion_updates", 50) # Number of motion updates before a sensor update
+        self.num_scan_rays_ = rospy.get_param("~num_scan_rays", 12) # (Approximate) number of scan rays to evaluate
+        self.num_sensing_updates_ = rospy.get_param("~num_sensing_updates", 1) # Number of sensing updates before resampling
         self.motion_distance_noise_stddev_ = rospy.get_param("~motion_distance_noise_stddev", 0.01) # Standard deviation of distance noise for motion update
         self.motion_rotation_noise_stddev_ = rospy.get_param("~motion_rotation_noise_stddev", math.pi / 60.) # Standard deviation of rotation noise for motion update
         self.sensing_noise_stddev_ = rospy.get_param("~sensing_noise_stddev", 0.5) # Standard deviation of sensing noise
@@ -152,6 +152,10 @@ class ParticleFilter:
         # "self.map_x_min_", "self.map_x_max_", "self.map_y_min_", and "self.map_y_max_" give you the limits of the map
         # Orientation (theta) should be between 0 and 2*Pi
         # You probably need to use a "." in your numbers (e.g. "1.0") when calculating the weights
+
+        
+        #to initialize the particles array we get random values for x y and theta 
+        #and we initialize the particle and add it to the array
         weight=1.0/self.num_particles_
         for i in range(self.num_particles_):
             X=random_uniform(self.map_x_min_,self.map_x_max_)
@@ -229,12 +233,15 @@ class ParticleFilter:
         # Choose a method to estimate the pose from the particles in the "particles_" vector
         # Put the values into "estimated_pose_x", "estimated_pose_y", and "estimated_pose_theta"
         # If you just use the pose of the particle with the highest weight the maximum mark you can get for this part is 0.5
+        
+        #Estimate pose: we get the weighted sum for x y cos(theta) and sin(theta)
+
         for i in range(n):
             estimated_pose_x += self.particles_[i].weight * self.particles_[i].x
             estimated_pose_y += self.particles_[i].weight * self.particles_[i].y
             sum_sin+=math.sin(self.particles_[i].theta)*self.particles_[i].weight
             sum_cos+=math.cos(self.particles_[i].theta)*self.particles_[i].weight
-        estimated_pose_theta=math.atan2(sum_sin,sum_cos)
+        estimated_pose_theta=math.atan2(sum_sin,sum_cos)# to get the estimated orientation we use atan2
 
 
         # Set the estimated pose message
@@ -440,6 +447,7 @@ class ParticleFilter:
 
         # Increment the motion update counter
         self.motion_update_count_ = self.motion_update_count_ + 1
+        rospy.loginfo(self.motion_update_count_)
 
         self.lock_.release()
 
