@@ -54,10 +54,10 @@ class ParticleFilter:
 
         # Parameters
         # Default values will be used if no ROS parameter exists (see launch file)
-        self.num_particles_ = rospy.get_param("~num_particles", 500) # Number of particles
-        self.num_motion_updates_ = rospy.get_param("~num_motion_updates", 50) # Number of motion updates before a sensor update
-        self.num_scan_rays_ = rospy.get_param("~num_scan_rays", 12) # (Approximate) number of scan rays to evaluate
-        self.num_sensing_updates_ = rospy.get_param("~num_sensing_updates", 1) # Number of sensing updates before resampling
+        self.num_particles_ = rospy.get_param("~num_particles", 1000) # Number of particles
+        self.num_motion_updates_ = rospy.get_param("~num_motion_updates", 10) # Number of motion updates before a sensor update
+        self.num_scan_rays_ = rospy.get_param("~num_scan_rays", 10) # (Approximate) number of scan rays to evaluate
+        self.num_sensing_updates_ = rospy.get_param("~num_sensing_updates", 5) # Number of sensing updates before resampling
         self.motion_distance_noise_stddev_ = rospy.get_param("~motion_distance_noise_stddev", 0.01) # Standard deviation of distance noise for motion update
         self.motion_rotation_noise_stddev_ = rospy.get_param("~motion_rotation_noise_stddev", math.pi / 60.) # Standard deviation of rotation noise for motion update
         self.sensing_noise_stddev_ = rospy.get_param("~sensing_noise_stddev", 0.5) # Standard deviation of sensing noise
