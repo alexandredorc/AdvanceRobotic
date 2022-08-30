@@ -408,7 +408,7 @@ class ParticleFilter:
         # Use "random_normal()" with "self.motion_distance_noise_stddev_" and "self.motion_rotation_noise_stddev_" to get random values
         # You will probably need "math.cos()" and "math.sin()", and you should wrap theta with "wrap_angle()" too
 
-
+        #motion update for x y theta with noise
         for i in range(len(self.particles_)):
             self.particles_[i].x+= (distance + random_normal(self.motion_distance_noise_stddev_)) * math.cos(self.particles_[i].theta) 
             self.particles_[i].y+= (distance + random_normal(self.motion_distance_noise_stddev_)) * math.sin(self.particles_[i].theta)
@@ -491,6 +491,7 @@ class ParticleFilter:
                 # Multiply the ray likelihood into the "likelihood" variable
                 # You will probably need "math.pi", math.sqrt()", "math.pow()", and "math.exp()"
 
+                #likelihood update for sensing update
                 sense_calc=2*(self.sensing_noise_stddev_**2)
                 likelihood*=math.exp(-((particle_range-scan_range)**2)/sense_calc)
                 likelihood/=math.sqrt(math.pi*sense_calc)
